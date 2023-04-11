@@ -40,7 +40,7 @@ namespace outtxt {
 	
 	void GetInformationAboutStop(std::string& request_content, catalogue::TransportCatalogue& tc) {
 		const auto& stop_info = tc.GetStopInfo(request_content);
-		if (stop_info.isExist) {
+		if (stop_info.is_exist) {
 			if (stop_info.buses_.size() > 0) {
 				std::cout << "Stop "s << request_content << ": "s << stop_info << std::endl;
 			}

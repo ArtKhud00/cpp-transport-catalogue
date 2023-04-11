@@ -31,7 +31,7 @@ const size_t PRIME_NUMBER = 37;
 
 	struct StopInfo {
 		std::string stopname_;
-		bool isExist = false;
+		bool is_exist = false;
 		std::vector<Bus*> buses_;
 	};
 	namespace detail {

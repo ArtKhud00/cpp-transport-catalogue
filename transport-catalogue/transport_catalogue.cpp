@@ -48,9 +48,9 @@ namespace catalogue {
 	const StopInfo TransportCatalogue::GetStopInfo(std::string_view stop_name) {
 		const Stop* stop = FindStop(stop_name);
 		StopInfo res;
-		res.isExist = false;
+		res.is_exist = false;
 		if (stop != nullptr) {
-			res.isExist = true;
+			res.is_exist = true;
 			res.stopname_ = stop->stopname_;
 			if (stopname_to_buses_.count(stop) > 0) {
 				const auto& buses = stopname_to_buses_.at(stop);
