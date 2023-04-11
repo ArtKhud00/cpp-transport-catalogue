@@ -5,6 +5,6 @@
 
 int main() {
 	catalogue::TransportCatalogue tc;
-	inputtxt::read_input(std::cin,tc);
-	outtxt::readRequest(std::cin, tc);
+	inputtxt::ReadInput(std::cin,tc);
+	outtxt::ReadRequest(std::cin, tc);
 }

@@ -12,8 +12,7 @@ const size_t PRIME_NUMBER = 37;
 
 	struct Stop {
 		std::string stopname_;
-		double latitude;
-		double longitude;
+		geo::Coordinates coordinates_;
 	};
 
 	struct Bus {
@@ -51,7 +50,7 @@ const size_t PRIME_NUMBER = 37;
 	}
 
 	using BusSet = std::set<Bus*, detail::compareBus>;
-	using stopdistancesinformation = std::unordered_map<std::pair<const Stop*, const Stop*>, double, detail::dist_hasher>;
+	using DistancesBetweenStops = std::unordered_map<std::pair<const Stop*, const Stop*>, double, detail::dist_hasher>;
 
 	class TransportCatalogue {
 	public:
@@ -61,26 +60,27 @@ const size_t PRIME_NUMBER = 37;
 
 		void AddBus(const Bus& bus);
 
-		void AddStopsDistances(std::string_view stop_name, std::vector<std::pair<std::string, int>>& distances);
+		void SetStopsDistances(const Stop* from_stop, const Stop* to_stop, int distance);
 
 		const Bus* FindBus(std::string_view bus_name);
 
 		const BusInfo GetBusInfo(std::string_view bus_name);
 
 		const StopInfo GetStopInfo(std::string_view stop_name);
-
 	private:
 		std::unordered_map<std::string_view, Stop*> stopname_to_stop_;
-		stopdistancesinformation stops_distances_;
+		DistancesBetweenStops stops_distances_;
 		std::unordered_map<std::string_view, Bus*> busname_to_bus_;
 		std::unordered_map<const Stop*, BusSet> stopname_to_buses_;
 		std::deque<Stop> all_stops_;
 		std::deque<Bus> all_buses_;
 
 		double CalculateRouteLength(std::string_view bus_name);
+
 		double CalculateRouteLengthGeo(std::string_view bus_name);
+
 		void InsertBusToStop(Bus* bus);
-		int DistanceBetweenStops(const Stop* stop1, const Stop* stop2);
-		
+
+		int GetStopsDistance(const Stop* from_stop, const Stop* to_stop);
 	};
 }

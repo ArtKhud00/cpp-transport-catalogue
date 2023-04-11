@@ -4,19 +4,21 @@
 
 namespace outtxt {
 	using namespace std::literals;
-	std::ostream& operator <<(std::ostream& os, catalogue::BusInfo businfo) {
-		os << businfo.stops_count << " stops on route, "s << businfo.unique_stops << " unique stops, "s <<
-			businfo.route_length << " route length, "s << businfo.curvature << " curvature"s;
+	std::ostream& operator <<(std::ostream& os, catalogue::BusInfo bus_info) {
+		os << bus_info.stops_count << " stops on route, "s 
+		   << bus_info.unique_stops << " unique stops, "s 
+		   << bus_info.route_length << " route length, "s 
+		   << bus_info.curvature << " curvature"s;
 		return os;
 	}
 
-	std::ostream& operator <<(std::ostream& os, catalogue::StopInfo stopinfo) {
+	std::ostream& operator <<(std::ostream& os, catalogue::StopInfo stop_info) {
+		bool is_first = true;
 		os << "buses "s;
-		bool isFirst = true;
-		for (const auto& bus : stopinfo.buses_) {
-			if (isFirst) {
+		for (const auto& bus : stop_info.buses_) {
+			if (is_first) {
 				os << bus->busname_;
-				isFirst = false;
+				is_first = false;
 			}
 			else {
 				os << " "s << bus->busname_;
@@ -25,14 +27,55 @@ namespace outtxt {
 		return os;
 	}
 
-	void readRequest(std::istream& input, catalogue::TransportCatalogue& tc) {
+	
+	void GetInformationAboutBus(std::string& request_content, catalogue::TransportCatalogue& tc) {
+		const auto& bus_info = tc.GetBusInfo(request_content);
+		if (bus_info.stops_count == 0) {
+			std::cout << "Bus "s << request_content << ": not found"s << std::endl;
+		}
+		else {
+			std::cout << "Bus "s << request_content << ": "s << bus_info << std::endl;
+		}
+	}
+	
+	void GetInformationAboutStop(std::string& request_content, catalogue::TransportCatalogue& tc) {
+		const auto& stop_info = tc.GetStopInfo(request_content);
+		if (stop_info.isExist) {
+			if (stop_info.buses_.size() > 0) {
+				std::cout << "Stop "s << request_content << ": "s << stop_info << std::endl;
+			}
+			else {
+				std::cout << "Stop "s << request_content << ": no buses"s << std::endl;
+			}
+
+		}
+		else {
+			std::cout << "Stop "s << request_content << ": not found"s << std::endl;
+		}
+	}
+
+	void ProcessRequest(RequestsByTypeAndContent& requests, catalogue::TransportCatalogue& tc) {
+		if (!requests.empty()) {
+			for (auto& [request_type, request_content] : requests) {
+				if (request_type == "Bus"s) {
+					GetInformationAboutBus(request_content, tc);
+				}
+				if (request_type == "Stop"s) {
+					GetInformationAboutStop(request_content, tc);
+				}
+			}
+		}
+	}
+
+
+	void ReadRequest(std::istream& input, catalogue::TransportCatalogue& tc) {
 		std::string count;
 		std::getline(input, count);
 		int num_of_reqs = 0;
 		if (count.size() > 0) {
 			num_of_reqs = std::stoi(count);
 		}
-		std::vector<std::pair<std::string, std::string>> requests;
+		RequestsByTypeAndContent requests;
 		for (int i = 0; i < num_of_reqs; ++i) {
 			std::string line;
 			std::getline(input, line);
@@ -47,31 +90,6 @@ namespace outtxt {
 			requests.push_back(std::move(std::make_pair(first_part, last_part)));
 
 		}
-		for (auto& [Key, Request] : requests) {
-			if (Key == "Bus"s) {
-				const auto& businfo = tc.GetBusInfo(Request);
-				if (businfo.stops_count == 0) {
-					std::cout << "Bus "s << Request << ": not found"s << std::endl;
-				}
-				else {
-					std::cout << "Bus "s << Request << ": "s << businfo << std::endl;
-				}
-			}
-			if (Key == "Stop"s) {
-				const auto& stopinfo = tc.GetStopInfo(Request);
-				if (stopinfo.isExist) {
-					if (stopinfo.buses_.size() > 0) {
-						std::cout << "Stop "s << Request << ": "s << stopinfo << std::endl;
-					}
-					else {
-						std::cout << "Stop "s << Request << ": no buses"s << std::endl;
-					}
-
-				}
-				else {
-					std::cout << "Stop "s << Request << ": not found"s << std::endl;
-				}
-			}
-		}
+		ProcessRequest(requests, tc);
 	}
 }

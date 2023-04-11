@@ -5,7 +5,19 @@
 namespace inputtxt {
 	using namespace std::literals;
 
-	void ParseDistancesAndAdd(std::unordered_map<std::string, std::vector<std::string>>& stopname_to_distinfo, catalogue::TransportCatalogue& tc) {
+	
+	void SetParsedDistancesToStop(std::string stop_name, 
+		                          std::vector<std::pair<std::string, int>>& stops_to_distances, 
+		                          catalogue::TransportCatalogue& tc) {
+		const catalogue::Stop* from_stop = tc.FindStop(stop_name);
+		for (const auto& [stop, distance] : stops_to_distances) {
+			const catalogue::Stop* to_stop = tc.FindStop(stop);
+			tc.SetStopsDistances(from_stop, to_stop, distance);		
+		}
+	}
+	
+	void ParseDistancesAndSet(std::unordered_map<std::string, std::vector<std::string>>& stopname_to_distinfo,
+		                      catalogue::TransportCatalogue& tc) {
 		if (!stopname_to_distinfo.empty()) {
 			for (auto& [key, value] : stopname_to_distinfo) {
 				std::vector<std::pair<std::string, int>> stops_to_distances;
@@ -21,7 +33,7 @@ namespace inputtxt {
 					stopname = stopname.substr(0, pos + 1);
 					stops_to_distances.push_back({ stopname,distance });
 				}
-				tc.AddStopsDistances(key, stops_to_distances);
+				SetParsedDistancesToStop(key, stops_to_distances, tc);
 			}
 		}
 	}
@@ -66,11 +78,11 @@ namespace inputtxt {
 				stopname_to_distinfo.insert({ stop_name,distances });
 			}
 			double coord2 = std::stod(temp_coord);
-			catalogue::Stop stop = { stop_name, coord1, coord2 };
+			catalogue::Stop stop = { stop_name, {coord1, coord2} };
 
 			tc.AddStop(std::move(stop));
 		}
-		ParseDistancesAndAdd(stopname_to_distinfo, tc);
+		ParseDistancesAndSet(stopname_to_distinfo, tc);
 	}
 
 
@@ -107,7 +119,7 @@ namespace inputtxt {
 		}
 	}
 
-	void read_input(std::istream& input, catalogue::TransportCatalogue& tc) {
+	void ReadInput(std::istream& input, catalogue::TransportCatalogue& tc) {
 		std::string count;
 		std::getline(input, count);
 		int num_of_reqs = 0;

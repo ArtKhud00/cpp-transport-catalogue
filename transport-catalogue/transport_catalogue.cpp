@@ -60,16 +60,16 @@ namespace catalogue {
 		return res;
 	}
 
-	int TransportCatalogue::DistanceBetweenStops(const Stop* stop1, const Stop* stop2) {
-		auto two_stops1 = std::make_pair(stop1, stop2);
-		auto two_stops2 = std::make_pair(stop2, stop1);
+	int TransportCatalogue::GetStopsDistance(const Stop* from_stop, const Stop* to_stop) {
+		auto direct_direction = std::make_pair(from_stop, to_stop);
+		auto reverse_direction = std::make_pair(to_stop, from_stop);
 		int result = 0;
-		if (stops_distances_.count(two_stops1) > 0) {
-			result = stops_distances_.at(two_stops1);
+		if (stops_distances_.count(direct_direction) > 0) {
+			result = stops_distances_.at(direct_direction);
 			return result;
 		}
-		if (stops_distances_.count(two_stops2) > 0) {
-			result = stops_distances_.at(two_stops2);
+		if (stops_distances_.count(reverse_direction) > 0) {
+			result = stops_distances_.at(reverse_direction);
 			return result;
 		}
 		return result;
@@ -78,14 +78,15 @@ namespace catalogue {
 	double TransportCatalogue::CalculateRouteLengthGeo(std::string_view bus_name) {
 		if (busname_to_bus_.count(bus_name) > 0) {
 			const Bus* bus = FindBus(bus_name);
-			bool isCircular = bus->is_circle;
+			bool is_circular = bus->is_circle;
 			double distance = 0;
 			auto& stops = bus->stops_;
 			for (int i = 0; i < stops.size() - 1; ++i) {
-				auto stop1 = stops[i];
-				auto stop2 = stops[i + 1];
-				distance += isCircular ? geo::ComputeDistance({ stop1->latitude, stop1->longitude }, { stop2->latitude, stop2->longitude })
-					: (geo::ComputeDistance({ stop1->latitude, stop1->longitude }, { stop2->latitude, stop2->longitude }) + geo::ComputeDistance({ stop2->latitude, stop2->longitude }, { stop1->latitude, stop1->longitude }));
+				auto stop = stops[i];
+				auto next_stop = stops[i + 1];
+				distance += is_circular ? geo::ComputeDistance(stop->coordinates_, next_stop->coordinates_)
+					                    : (geo::ComputeDistance(stop->coordinates_, next_stop->coordinates_) 
+						                  + geo::ComputeDistance(next_stop->coordinates_, stop->coordinates_));
 			}
 			return distance;
 		}
@@ -99,11 +100,11 @@ namespace catalogue {
 			int distance = 0;
 			auto& stops = bus->stops_;
 			for (int i = 0; i < stops.size() - 1; ++i) {
-				auto stop1 = stops[i];
-				auto stop2 = stops[i + 1];
-
-				distance += isCircular ? DistanceBetweenStops(stop1, stop2) :
-					(DistanceBetweenStops(stop1, stop2) + DistanceBetweenStops(stop2, stop1));
+				auto stop = stops[i];
+				auto next_stop = stops[i + 1];
+				distance += isCircular ? GetStopsDistance(stop, next_stop) 
+					                   : (GetStopsDistance(stop, next_stop) 
+									     + GetStopsDistance(next_stop, stop));
 			}
 
 			return distance;
@@ -117,19 +118,10 @@ namespace catalogue {
 		}
 	}
 
-	void TransportCatalogue::AddStopsDistances(std::string_view stop_name, std::vector<std::pair<std::string, int>>& distances) {
-		if (stopname_to_stop_.count(stop_name) == 0) {
+	void TransportCatalogue::SetStopsDistances(const Stop* from_stop, const Stop* to_stop, int distance) {
+		if (from_stop == nullptr || to_stop == nullptr) {
 			throw std::invalid_argument("Invalid stop in distances");
 		}
-		else {
-			const Stop* from_stop = FindStop(stop_name);
-			for (const auto& [stop, distance] : distances) {
-				if (stopname_to_stop_.count(stop) == 0) {
-					throw std::invalid_argument("Invalid stop in distances");
-				}
-				const Stop* to_stop = FindStop(stop);
-				stops_distances_[{from_stop, to_stop}] = distance;
-			}
-		}
+		stops_distances_[{from_stop, to_stop}] = distance;
 	}
 }
