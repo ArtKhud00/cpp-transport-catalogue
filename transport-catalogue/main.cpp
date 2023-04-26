@@ -1,10 +1,14 @@
 #include <iostream>
-#include "input_reader.h"
-#include "stat_reader.h"
 
+#include "json_reader.h"
+#include "request_handler.h"
 
 int main() {
 	catalogue::TransportCatalogue tc;
-	inputtxt::ReadInput(std::cin,tc);
-	outtxt::ReadRequest(std::cin, tc);
+	json_reader::Reader reader(tc);
+	reader.LoadFromJson(std::cin);
+	RequestHandler req_handle(tc, reader);
+	req_handle.JsonOut(std::cout);
+	//svg::Document res = req_handle.RenderMap();
+	//res.Render(std::cout);
 }
