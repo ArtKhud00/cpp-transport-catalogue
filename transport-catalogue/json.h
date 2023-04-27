@@ -20,20 +20,11 @@ namespace json {
         using runtime_error::runtime_error;
     };
 
-    class Node {
+    class Node final 
+        : private std::variant <std::nullptr_t, Array, Dict, bool, int, double, std::string > {
     public:
-        /* Реализуйте Node, используя std::variant */
-
-        using Value = std::variant <std::nullptr_t, Array, Dict, bool, int, double, std::string >;
-
-        Node() = default;
-        Node(Array array);
-        Node(Dict map);
-        Node(int value);
-        Node(std::string value);
-        Node(std::nullptr_t value);
-        Node(bool value);
-        Node(double value);
+        using variant::variant;
+        using Value = variant;
 
         const Array& AsArray() const;
         const Dict& AsMap() const;
@@ -54,20 +45,9 @@ namespace json {
         const Value& GetValue() const;
 
         bool operator==(const Node& rhs) const;
-        bool operator!=(const Node& rhs) const;
-       
-    private:
-        Value value_;
+        bool operator!=(const Node& rhs) const;       
     };
-    //inline bool operator==(const Node& lhs, const Node& rhs);
-    //inline bool operator!=(const Node& lhs, const Node& rhs);
 
-    //bool operator==(const Array& lhs, const Array& rhs);
-    //bool operator!=(const Array& lhs, const Array& rhs);
-    //bool operator==(const Dict& lhs, const Dict& rhs);
-    //bool operator!=(const Dict& lhs, const Dict& rhs);
-
-    //void PrintNode(const Node& node, std::ostream& output);
 
     class Document {
     public:
@@ -76,16 +56,11 @@ namespace json {
         const Node& GetRoot() const;
 
         bool operator==(const Document& rhs) const;
+
         bool operator!=(const Document& rhs) const;
     private:
         Node root_;
     };
-
-    //inline bool operator==(const Document& lhs,
-    //    const Document& rhs);
-
-    //inline bool operator!=(const Document& lhs,
-    //    const Document& rhs);
 
     Document Load(std::istream& input);
 

@@ -27,15 +27,50 @@ namespace renderer {
         stop_to_modified_coordinates_ = stop_to_coordinate;
     }
 
-    svg::Document MapRenderer::RenderMap() {
+    svg::Document MapRenderer::RenderMap(const std::unordered_map<std::string_view, data::Bus*>& busname_to_bus) {
         svg::Document document;
         int colors_count = static_cast<int>(map_settings_.color_palette.size());
+        PrepareData(busname_to_bus);
         DrawRouteLine(colors_count, document);
         DrawRouteName(colors_count, document);
         DrawStopCircle(document);
         DrawStopNames(document);
         
         return document;
+    }
+
+    void MapRenderer::PrepareData(const std::unordered_map<std::string_view, data::Bus*>& busname_to_bus) {
+        std::set<std::string_view> bus_names;
+        std::set<std::string_view> stop_names;
+        std::vector<geo::Coordinates> stop_geo_coords;
+        for (const auto& [bus_name, bus] : busname_to_bus) {
+            bus_names.insert(bus_name);
+            for (const auto& stop : bus->stops_) {
+                stop_names.insert(stop->stopname_);
+                stop_geo_coords.push_back({ stop->coordinates_.lat,
+                                            stop->coordinates_.lng });
+            }
+        }
+        const renderer::SphereProjector proj{
+            stop_geo_coords.begin(), stop_geo_coords.end(),
+            map_settings_.width,map_settings_.height, map_settings_.padding
+        };
+        std::unordered_map<std::string_view, std::pair<bool, std::vector<svg::Point>>> bus_to_stop_coordinates;
+        std::unordered_map<std::string_view, svg::Point> stop_to_modified_coordinates;
+        for (const auto& bus_sorted : bus_names) {
+            auto buss = busname_to_bus.at(bus_sorted);
+            bus_to_stop_coordinates[bus_sorted].first = buss->is_circle;
+            for (const auto& stop : buss->stops_) {
+                bus_to_stop_coordinates[bus_sorted].second.push_back(proj(stop->coordinates_));
+                if (stop_to_modified_coordinates.count(stop->stopname_) == 0) {
+                    stop_to_modified_coordinates[stop->stopname_] = proj(stop->coordinates_);
+                }
+            }
+        }
+        SetBuses(bus_names);
+        SetStops(stop_names);
+        SetBusesCoordinatesInfo(bus_to_stop_coordinates);
+        SetStopsCoordinatesInfo(stop_to_modified_coordinates);
     }
 
     void MapRenderer::DrawRouteLine(int colors_count, svg::Document& document) {
@@ -64,9 +99,7 @@ namespace renderer {
         }
     }
 
-    
     void MapRenderer::DrawRouteName(int colors_count, svg::Document& document) {
-
         int color_index = 0;
         for (const auto& bus : buses_sorted_) {
             svg::Text text_data;
@@ -85,7 +118,6 @@ namespace renderer {
                 .SetPosition(first_stop_coord)
                 .SetOffset(map_settings_.bus_label_offset)
                 .SetData(std::string(bus));
-
             document.Add(Text{base_text}
                 .SetStrokeColor(map_settings_.underlayer_color)
                 .SetFillColor(map_settings_.underlayer_color)
@@ -104,7 +136,6 @@ namespace renderer {
                         .SetPosition(last_stop_coord)
                         .SetOffset(map_settings_.bus_label_offset)
                         .SetData(std::string(bus));
-
                     document.Add(Text{ base_text }
                         .SetStrokeColor(map_settings_.underlayer_color)
                         .SetFillColor(map_settings_.underlayer_color)

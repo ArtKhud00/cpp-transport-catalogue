@@ -1,6 +1,4 @@
 #pragma once
-
-#pragma once
 #include "geo.h"
 #include "svg.h"
 #include "transport_catalogue.h"
@@ -92,19 +90,13 @@ namespace renderer {
     };
 
     
-    
     class MapRenderer {
     public:
         MapRenderer(const RouteMapSettings& map_settings) :map_settings_(map_settings) {
         }
 
-        svg::Document RenderMap();
-
-        void SetBuses(std::set<std::string_view>& buses_sorted);
-        void SetStops(std::set<std::string_view>& stops_sorted);
-        void SetBusesCoordinatesInfo(std::unordered_map<std::string_view, std::pair<bool, std::vector<svg::Point>>>& buses_coordinate);
-        void SetStopsCoordinatesInfo(std::unordered_map<std::string_view, svg::Point>& stop_to_coordinate);
-
+        svg::Document RenderMap(const std::unordered_map<std::string_view, data::Bus*>& busname_to_bus);
+    
     private:
         const RouteMapSettings map_settings_;
         std::set<std::string_view> buses_sorted_;
@@ -112,6 +104,13 @@ namespace renderer {
         std::unordered_map<std::string_view, std::pair<bool, std::vector<svg::Point>>> bus_to_stop_coordinates_;
         std::unordered_map<std::string_view, svg::Point> stop_to_modified_coordinates_;
 
+        void PrepareData(const std::unordered_map<std::string_view, data::Bus*>& busname_to_bus);
+
+        void SetBuses(std::set<std::string_view>& buses_sorted);
+        void SetStops(std::set<std::string_view>& stops_sorted);
+        void SetBusesCoordinatesInfo(std::unordered_map<std::string_view, std::pair<bool, std::vector<svg::Point>>>& buses_coordinate);
+        void SetStopsCoordinatesInfo(std::unordered_map<std::string_view, svg::Point>& stop_to_coordinate);
+        
         void DrawRouteLine(int colors_count, svg::Document& document);
         void DrawRouteName(int colors_count, svg::Document& document);
         void DrawStopCircle(svg::Document& document);

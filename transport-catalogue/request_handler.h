@@ -30,13 +30,13 @@
      }
 
      // Возвращает информацию о маршруте (запрос Bus)
-     //std::optional<data::BusInfo> GetBusStat(const std::string_view& bus_name) const;
+     std::optional<const data::BusInfo> GetBusStat(const std::string_view& bus_name) const;
 
-     // Возвращает маршруты, проходящие через
-     //const std::unordered_set<BusPtr>* GetBusesByStop(const std::string_view& stop_name) const;
+     // Возвращает информацию об остановке (запрос Stop)
+     std::optional<const data::StopInfo> GetStopStat(const std::string_view& stop_name) const;
+
      void JsonOut(std::ostream& out);
 
-     // Этот метод будет нужен в следующей части итогового проекта
      svg::Document RenderMap() const;
 
  private:

@@ -2,7 +2,6 @@
 
 namespace json_reader {
     
-    
     void Reader::LoadFromJson(std::istream& input) {
         json::Document doc = json::Load(input);
         json::Node root = doc.GetRoot();
@@ -24,6 +23,7 @@ namespace json_reader {
        ParseStopsAndAdd();
        ParseBusesAndAdd();
     }
+
     void Reader::ParseStopsAndAdd() {
         StopToOtherStopsDistances stop_to_other_stops;
         for (auto& one_stop : stops_data_) {
@@ -76,7 +76,6 @@ namespace json_reader {
     }
 
     void Reader::ProcessRenderSettings() {
-
         for (const auto& [key, value] : queries_.at("render_settings"s).AsMap()) {
             if (key == "width"s) {
                 route_map_settings_.width = value.AsDouble();
@@ -174,4 +173,5 @@ namespace json_reader {
 
         }
     }
+
 }
