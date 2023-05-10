@@ -1,10 +1,11 @@
 #pragma once
 #include "transport_catalogue.h"
-#include <optional>
-#include "json.h"
-#include "json_reader.h"
+#include "map_renderer.h"
+//#include "json.h"
+//#include "json_reader.h"
 #include "svg.h"
 
+#include <optional>
 /*
  * Здесь можно было бы разместить код обработчика запросов к базе, содержащего логику, которую не
  * хотелось бы помещать ни в transport_catalogue, ни в json reader.
@@ -24,9 +25,9 @@
  public:
      // MapRenderer понадобится в следующей части итогового проекта
      //RequestHandler(const TransportCatalogue& db, const renderer::MapRenderer& renderer);
-     RequestHandler(catalogue::TransportCatalogue& db, json_reader::Reader& reader) 
+     RequestHandler(catalogue::TransportCatalogue& db, renderer::MapRenderer& map_renderer) 
          : db_(db)
-         , reader_(reader) {
+         , map_renderer_(map_renderer) {
      }
 
      // Возвращает информацию о маршруте (запрос Bus)
@@ -35,14 +36,13 @@
      // Возвращает информацию об остановке (запрос Stop)
      std::optional<const data::StopInfo> GetStopStat(const std::string_view& stop_name) const;
 
-     void JsonOut(std::ostream& out);
-
+     void SetRenderSettings(const renderer::RouteMapSettings& map_settings);
+     
      svg::Document RenderMap() const;
 
  private:
      // RequestHandler использует агрегацию объектов "Транспортный Справочник" и "Визуализатор Карты"
      catalogue::TransportCatalogue& db_;
-     json_reader::Reader& reader_;
-     //const renderer::MapRenderer& renderer_;
+     renderer::MapRenderer& map_renderer_;
  };
  

@@ -5,10 +5,9 @@
 
 int main() {
 	catalogue::TransportCatalogue tc;
-	json_reader::Reader reader(tc);
+	renderer::MapRenderer map_renderer;
+	RequestHandler req_handle(tc, map_renderer);
+	json_reader::Reader reader(tc, req_handle);
 	reader.LoadFromJson(std::cin);
-	RequestHandler req_handle(tc, reader);
-	req_handle.JsonOut(std::cout);
-	//svg::Document res = req_handle.RenderMap();
-	//res.Render(std::cout);
+	reader.ProcessStatRequests(std::cout);
 }

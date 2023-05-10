@@ -27,6 +27,10 @@ namespace renderer {
         stop_to_modified_coordinates_ = stop_to_coordinate;
     }
 
+    void MapRenderer::SetRenderSettings(const RouteMapSettings& map_settings) {
+        map_settings_ = map_settings;
+    }
+
     svg::Document MapRenderer::RenderMap(const std::unordered_map<std::string_view, data::Bus*>& busname_to_bus) {
         svg::Document document;
         int colors_count = static_cast<int>(map_settings_.color_palette.size());

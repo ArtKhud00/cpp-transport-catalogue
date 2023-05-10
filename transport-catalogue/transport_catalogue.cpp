@@ -81,7 +81,7 @@ namespace catalogue {
 			bool is_circular = bus->is_circle;
 			double distance = 0;
 			auto& stops = bus->stops_;
-			for (size_t i = 0; i < stops.size() - 1; ++i) {
+			for (int i = 0; i < stops.size() - 1; ++i) {
 				auto stop = stops[i];
 				auto next_stop = stops[i + 1];
 				distance += is_circular ? geo::ComputeDistance(stop->coordinates_, next_stop->coordinates_)
@@ -99,7 +99,7 @@ namespace catalogue {
 			bool isCircular = bus->is_circle;
 			int distance = 0;
 			auto& stops = bus->stops_;
-			for (size_t i = 0; i < stops.size() - 1; ++i) {
+			for (int i = 0; i < stops.size() - 1; ++i) {
 				auto stop = stops[i];
 				auto next_stop = stops[i + 1];
 				distance += isCircular ? GetStopsDistance(stop, next_stop)

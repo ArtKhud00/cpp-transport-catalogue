@@ -1,18 +1,19 @@
 #include "json_reader.h"
+#include "json_builder.h"
 
 namespace json_reader {
     
     void Reader::LoadFromJson(std::istream& input) {
         json::Document doc = json::Load(input);
         json::Node root = doc.GetRoot();
-        queries_ = root.AsMap();
+        queries_ = root.AsDict();
         ProcessBaseRequests();
         ProcessRenderSettings();
     }
 
     void Reader::ProcessBaseRequests() {
         for (auto& rec : queries_.at("base_requests"s).AsArray()) {
-            auto info = rec.AsMap();
+            auto info = rec.AsDict();
             if (info.at("type"s).AsString() == "Bus"s) {
                 buses_data_.push_back(info);
             }
@@ -31,7 +32,7 @@ namespace json_reader {
             double longit = one_stop.at("longitude"s).AsDouble();
             double latit = one_stop.at("latitude"s).AsDouble();
             if (one_stop.count("road_distances") > 0) {
-                auto stop_dist = one_stop.at("road_distances").AsMap();
+                auto stop_dist = one_stop.at("road_distances").AsDict();
                 for (auto& [stop1, dist] : stop_dist) {
                     stop_to_other_stops[stop_name].push_back({ stop1, dist.AsInt() });
                 }
@@ -76,7 +77,7 @@ namespace json_reader {
     }
 
     void Reader::ProcessRenderSettings() {
-        for (const auto& [key, value] : queries_.at("render_settings"s).AsMap()) {
+        for (const auto& [key, value] : queries_.at("render_settings"s).AsDict()) {
             if (key == "width"s) {
                 route_map_settings_.width = value.AsDouble();
                 continue;
@@ -172,6 +173,107 @@ namespace json_reader {
             }
 
         }
+        handler_.SetRenderSettings(route_map_settings_);
+    }
+  
+    void Reader::ProcessStatStop(json::Node elem, json::Array& responce) {
+        auto& elem_dict = elem.AsDict();
+        int id = elem_dict.at("id").AsInt();
+        std::string stop_name = elem_dict.at("name"s).AsString();
+        const auto& stop_info = handler_.GetStopStat(stop_name);
+        if (stop_info->is_exist) {
+            std::vector<std::string> bus_names;
+            if (stop_info->buses_.size() > 0) {
+                for (auto& bus_ : stop_info->buses_) {
+                    bus_names.push_back(bus_->busname_);
+                }
+            }
+            responce.push_back(json::Builder{}
+                .StartDict()
+                .Key("request_id"s)
+                .Value(id)
+                .Key("buses"s)
+                .Value(json::Array{ bus_names.begin(), bus_names.end() })
+                .EndDict()
+                .Build());
+        }
+        else {
+            responce.push_back(json::Builder{}
+                .StartDict()
+                .Key("request_id"s)
+                .Value(id)
+                .Key("error_message"s)
+                .Value("not found"s)
+                .EndDict()
+                .Build());
+        }
     }
 
+    void Reader::ProcessStatBus(json::Node elem, json::Array& responce) {
+        auto& elem_dict = elem.AsDict();
+        int id = elem_dict.at("id").AsInt();
+        std::string bus_name = elem_dict.at("name"s).AsString();
+        const auto& bus_info = handler_.GetBusStat(bus_name);
+        if (bus_info->stops_count != 0) {
+            responce.push_back(json::Builder{}
+                .StartDict()
+                .Key("request_id"s)
+                .Value(id)
+                .Key("curvature"s)
+                .Value(bus_info->curvature)
+                .Key("route_length"s)
+                .Value(bus_info->route_length)
+                .Key("unique_stop_count"s)
+                .Value(bus_info->unique_stops)
+                .Key("stop_count"s)
+                .Value(bus_info->stops_count)
+                .EndDict()
+                .Build());
+        }
+        else {
+            responce.push_back(json::Builder{}
+                .StartDict()
+                .Key("request_id"s)
+                .Value(id)
+                .Key("error_message"s)
+                .Value("not found"s)
+                .EndDict()
+                .Build());
+        }
+
+    }
+
+    void Reader::ProcessStatMap(json::Node elem, json::Array& responce) {
+        int id = elem.AsDict().at("id").AsInt();
+        std::ostringstream svgMap;
+        handler_.RenderMap().Render(svgMap);
+        responce.push_back(json::Builder{}
+            .StartDict()
+            .Key("request_id"s)
+            .Value(id)
+            .Key("map"s)
+            .Value(svgMap.str())
+            .EndDict()
+            .Build());
+    }
+    
+    void Reader::ProcessStatRequests(std::ostream& out) {
+        json::Array responce;
+        auto requests = GetStatRequests();
+        for (auto& req : requests) {
+            auto& req_dict = req.AsDict();
+            std::string_view type = req_dict.at("type"s).AsString();
+            if (type == "Stop"sv) {
+                ProcessStatStop(req, responce);
+            }
+            else if (type == "Bus"sv) {
+                ProcessStatBus(req, responce);
+            }
+            else if (type == "Map"sv) {
+                ProcessStatMap(req, responce);
+            }
+        }
+        json::Document doc{ std::move(json::Node(responce)) };
+        json::Print(doc, out);
+    }
 }

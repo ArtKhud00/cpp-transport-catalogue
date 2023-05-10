@@ -92,13 +92,14 @@ namespace renderer {
     
     class MapRenderer {
     public:
-        MapRenderer(const RouteMapSettings& map_settings) :map_settings_(map_settings) {
-        }
+        MapRenderer() = default;
+
+        void SetRenderSettings(const RouteMapSettings& map_settings);
 
         svg::Document RenderMap(const std::unordered_map<std::string_view, data::Bus*>& busname_to_bus);
     
     private:
-        const RouteMapSettings map_settings_;
+        RouteMapSettings map_settings_;
         std::set<std::string_view> buses_sorted_;
         std::set<std::string_view> stops_sorted_;
         std::unordered_map<std::string_view, std::pair<bool, std::vector<svg::Point>>> bus_to_stop_coordinates_;
