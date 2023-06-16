@@ -81,7 +81,7 @@ namespace catalogue {
 			bool is_circular = bus->is_circle;
 			double distance = 0;
 			auto& stops = bus->stops_;
-			for (int i = 0; i < stops.size() - 1; ++i) {
+			for (size_t i = 0; i < stops.size() - 1; ++i) {
 				auto stop = stops[i];
 				auto next_stop = stops[i + 1];
 				distance += is_circular ? geo::ComputeDistance(stop->coordinates_, next_stop->coordinates_)
@@ -99,7 +99,7 @@ namespace catalogue {
 			bool isCircular = bus->is_circle;
 			int distance = 0;
 			auto& stops = bus->stops_;
-			for (int i = 0; i < stops.size() - 1; ++i) {
+			for (size_t i = 0; i < stops.size() - 1; ++i) {
 				auto stop = stops[i];
 				auto next_stop = stops[i + 1];
 				distance += isCircular ? GetStopsDistance(stop, next_stop)
@@ -127,6 +127,26 @@ namespace catalogue {
 
 	std::unordered_map<std::string_view, data::Bus*> TransportCatalogue::GetBusnameToBuses() const {
 		return busname_to_bus_;
+	}
+
+	std::unordered_map<std::string_view, data::Stop*> TransportCatalogue::GetStopnameToStops() const {
+		return stopname_to_stop_;
+	}
+
+	const std::vector<const data::Stop*> TransportCatalogue::GetStopsAsPtrs() {
+		std::vector<const data::Stop*> stops_pointers;
+		for (const auto& [_, stop_ptr] : stopname_to_stop_) {
+			stops_pointers.emplace_back(stop_ptr);
+		}
+		return stops_pointers;
+	}
+
+	const std::vector<const data::Bus*> TransportCatalogue::GetBusesAsPtrs() {
+		std::vector<const data::Bus*> buses_pointers;
+		for (const auto& [_, bus_ptr] : busname_to_bus_) {
+			buses_pointers.emplace_back(bus_ptr);
+		}
+		return buses_pointers;
 	}
 
 }

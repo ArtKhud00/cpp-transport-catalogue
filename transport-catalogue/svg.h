@@ -230,7 +230,6 @@ namespace svg {
 
         std::optional<Color> fill_color_;
         std::optional<Color> stroke_color_;
-        //std::optional<int> stroke_width_;
         std::optional<double> stroke_width_;
         std::optional<StrokeLineCap> stroke_line_cap_;
         std::optional<StrokeLineJoin> stroke_line_join_;

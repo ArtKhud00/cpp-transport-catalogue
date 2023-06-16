@@ -212,8 +212,7 @@ namespace svg {
         for (const auto& obj : objects_) {
             obj->Render(context);
         }
-        //out << "</svg>" << std::endl;
-        out << "</svg>";
+        out << "</svg>" << std::endl;
     }
 
 }  // namespace svg

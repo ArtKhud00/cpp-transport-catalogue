@@ -3,15 +3,20 @@
 #include "transport_catalogue.h"
 #include "request_handler.h"
 #include "map_renderer.h"
+#include "transport_router.h"
 #include <string>
 #include <sstream>
 
+
 using namespace std::literals;
+
+
 
 namespace json_reader {
     class Reader 
     {
     public:
+        //Reader () = default;
         using StopToOtherStopsDistances = std::unordered_map<std::string, std::vector<std::pair<std::string, int>>>;
         Reader(catalogue::TransportCatalogue& tc, RequestHandler& handler): tc_(tc), handler_(handler) {}
         
@@ -28,11 +33,15 @@ namespace json_reader {
         RequestHandler& handler_;
         json::Dict queries_;
         renderer::RouteMapSettings route_map_settings_;
+        router::RouterSettings router_settings_;
         std::vector<json::Dict> stops_data_;
         std::vector<json::Dict> buses_data_;
         
+
         void ProcessBaseRequests();
         void ProcessRenderSettings();
+        //edit 13.06
+        void ProcessRoutingSettings();
 
         void ParseStopsAndAdd();
         void ParseDistancesAndSet(StopToOtherStopsDistances& stop_to_other_stops);
@@ -41,5 +50,12 @@ namespace json_reader {
         void ProcessStatStop(json::Node, json::Array&);
         void ProcessStatBus(json::Node, json::Array&);
         void ProcessStatMap(json::Node, json::Array&);
+        // edit 13.06
+        void ProcessStatRoute(router::TransportRouter& tr, json::Node, json::Array&);
+        json::Array CreateArrayOfItems(const std::vector<router::EdgeExtraInfo>&);
     };
+
+
+
+    
 }

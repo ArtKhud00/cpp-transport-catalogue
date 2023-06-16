@@ -1,8 +1,7 @@
 #pragma once
 #include "transport_catalogue.h"
 #include "map_renderer.h"
-//#include "json.h"
-//#include "json_reader.h"
+#include "transport_router.h"
 #include "svg.h"
 
 #include <optional>
@@ -25,7 +24,8 @@
  public:
      // MapRenderer понадобится в следующей части итогового проекта
      //RequestHandler(const TransportCatalogue& db, const renderer::MapRenderer& renderer);
-     RequestHandler(catalogue::TransportCatalogue& db, renderer::MapRenderer& map_renderer) 
+     RequestHandler(catalogue::TransportCatalogue& db, 
+                    renderer::MapRenderer& map_renderer) 
          : db_(db)
          , map_renderer_(map_renderer) {
      }
@@ -36,9 +36,15 @@
      // Возвращает информацию об остановке (запрос Stop)
      std::optional<const data::StopInfo> GetStopStat(const std::string_view& stop_name) const;
 
+     //void JsonOut(std::ostream& out);
+
      void SetRenderSettings(const renderer::RouteMapSettings& map_settings);
+
+     void SetRouterSettings(router::TransportRouter& tr,router::RouterSettings&);
      
      svg::Document RenderMap() const;
+
+     std::optional<const router::RouteData> CalculateRoute(router::TransportRouter& tr, const std::string_view, const std::string_view);
 
  private:
      // RequestHandler использует агрегацию объектов "Транспортный Справочник" и "Визуализатор Карты"

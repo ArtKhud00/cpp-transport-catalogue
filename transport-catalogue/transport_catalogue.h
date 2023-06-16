@@ -38,6 +38,7 @@ namespace catalogue {
 		void AddBus(const data::Bus& bus);
 
 		void SetStopsDistances(const data::Stop* from_stop, const data::Stop* to_stop, int distance);
+		int GetStopsDistance(const data::Stop* from_stop, const data::Stop* to_stop);
 
 		const data::Bus* FindBus(std::string_view bus_name);
 
@@ -46,6 +47,10 @@ namespace catalogue {
 		const data::StopInfo GetStopInfo(std::string_view stop_name);
 	
 		std::unordered_map<std::string_view, data::Bus*> GetBusnameToBuses() const;
+		std::unordered_map<std::string_view, data::Stop*> GetStopnameToStops() const;
+
+		const std::vector<const data::Stop*> GetStopsAsPtrs();
+		const std::vector<const data::Bus*> GetBusesAsPtrs();
 	private:
 		std::unordered_map<std::string_view, data::Stop*> stopname_to_stop_;
 		DistancesBetweenStops stops_distances_;
@@ -60,6 +65,5 @@ namespace catalogue {
 
 		void InsertBusToStop(data::Bus* bus);
 
-		int GetStopsDistance(const data::Stop* from_stop, const data::Stop* to_stop);
 	};
 }

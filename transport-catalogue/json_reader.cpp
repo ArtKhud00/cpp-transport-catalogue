@@ -1,14 +1,17 @@
 #include "json_reader.h"
 #include "json_builder.h"
+//#include "request_handler.h"
 
 namespace json_reader {
     
     void Reader::LoadFromJson(std::istream& input) {
         json::Document doc = json::Load(input);
         json::Node root = doc.GetRoot();
+        //queries_ = root.AsMap();
         queries_ = root.AsDict();
         ProcessBaseRequests();
         ProcessRenderSettings();
+        ProcessRoutingSettings();
     }
 
     void Reader::ProcessBaseRequests() {
@@ -60,7 +63,6 @@ namespace json_reader {
             auto bus_stops = one_bus.at("stops").AsArray();
             std::vector<const data::Stop*> stops;
             for (const auto& bus_stop : bus_stops) {
-                //auto test = bus_stop.AsString();
                 stops.push_back(tc_.FindStop(bus_stop.AsString()));
             }
             data::Bus bus = { bus_name, stops, round_trip };
@@ -175,7 +177,21 @@ namespace json_reader {
         }
         handler_.SetRenderSettings(route_map_settings_);
     }
-  
+
+    void Reader::ProcessRoutingSettings() {
+        for (const auto& [key, value] : queries_.at("routing_settings"s).AsDict()) {
+            if (key == "bus_velocity"s) {
+                router_settings_.bus_velocity = value.AsInt();
+                continue;
+            }
+            if (key == "bus_wait_time"s) {
+                router_settings_.bus_wait_time = value.AsInt();
+                continue;
+            }
+        }
+        //handler_.SetRouterSettings(router_settings_);
+    }
+    
     void Reader::ProcessStatStop(json::Node elem, json::Array& responce) {
         auto& elem_dict = elem.AsDict();
         int id = elem_dict.at("id").AsInt();
@@ -185,6 +201,7 @@ namespace json_reader {
             std::vector<std::string> bus_names;
             if (stop_info->buses_.size() > 0) {
                 for (auto& bus_ : stop_info->buses_) {
+                    //items.push_back(std::move(json::Node(bus_->busname_)));
                     bus_names.push_back(bus_->busname_);
                 }
             }
@@ -214,6 +231,7 @@ namespace json_reader {
         int id = elem_dict.at("id").AsInt();
         std::string bus_name = elem_dict.at("name"s).AsString();
         const auto& bus_info = handler_.GetBusStat(bus_name);
+
         if (bus_info->stops_count != 0) {
             responce.push_back(json::Builder{}
                 .StartDict()
@@ -256,10 +274,79 @@ namespace json_reader {
             .EndDict()
             .Build());
     }
+
+
+    json::Array Reader::CreateArrayOfItems(const std::vector<router::EdgeExtraInfo>& items) {
+        json::Array array_of_items;
+        for (const auto& item : items) {
+            if (item.span_count == 0) {
+                array_of_items.push_back(json::Builder{}
+                    .StartDict()
+                    .Key("stop_name"s)
+                    .Value(item.edge_name)
+                    .Key("time"s)
+                    .Value(item.weight_info)
+                    .Key("type"s)
+                    .Value("Wait"s)
+                    .EndDict()
+                    .Build());
+            }
+            else {
+                array_of_items.push_back(json::Builder{}
+                    .StartDict()
+                    .Key("bus"s)
+                    .Value(item.edge_name)
+                    .Key("span_count"s)
+                    .Value(item.span_count)
+                    .Key("time")
+                    .Value(item.weight_info)
+                    .Key("type")
+                    .Value("Bus"s)
+                    .EndDict()
+                    .Build());
+            }
+        }
+        return array_of_items;
+    }
+
+    void Reader::ProcessStatRoute(router::TransportRouter& tr, json::Node elem, json::Array& responce) {
+        int id = elem.AsDict().at("id").AsInt();
+        std::string from_stop = elem.AsDict().at("from").AsString();
+        std::string to_stop = elem.AsDict().at("to").AsString();
+        //router::TransportRouter tr(tc_);
+        //handler_.SetRouterSettings(tr,router_settings_);
+        auto calculated_route = handler_.CalculateRoute(tr, from_stop, to_stop);
+
+		if (!calculated_route.has_value()){
+			responce.push_back(json::Builder{}
+			    .StartDict()
+				.Key("request_id"s)
+				.Value(id)
+				.Key("error_message"s)
+				.Value("not found"s)
+				.EndDict()
+				.Build());
+        }
+        else {
+            json::Array array_of_items = CreateArrayOfItems(calculated_route.value().items);
+            responce.push_back(json::Builder{}
+            .StartDict()
+                .Key("total_time"s)
+                .Value(calculated_route.value().total_time)
+                .Key("request_id"s)
+                .Value(id)
+                .Key("items"s)
+                .Value(array_of_items)
+                .EndDict()
+                .Build());
+        }
+    }
     
     void Reader::ProcessStatRequests(std::ostream& out) {
         json::Array responce;
         auto requests = GetStatRequests();
+        router::TransportRouter tr(tc_);
+        handler_.SetRouterSettings(tr, router_settings_);
         for (auto& req : requests) {
             auto& req_dict = req.AsDict();
             std::string_view type = req_dict.at("type"s).AsString();
@@ -272,8 +359,12 @@ namespace json_reader {
             else if (type == "Map"sv) {
                 ProcessStatMap(req, responce);
             }
+            else if (type == "Route"sv) {
+                ProcessStatRoute(tr, req, responce);
+            }
         }
         json::Document doc{ std::move(json::Node(responce)) };
         json::Print(doc, out);
+        
     }
 }
