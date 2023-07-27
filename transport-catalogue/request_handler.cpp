@@ -16,6 +16,10 @@ void RequestHandler::SetRouterSettings(router::TransportRouter& tr , router::Rou
 	tr.SetRouterSettings(router_settings);
 }
 
+void RequestHandler::SetSerializationSettings(serializer::Serialization& ser, serializer::SerializationSettings& serialization_settings) {
+	ser.SetSerializerSettings(serialization_settings);
+}
+
 svg::Document RequestHandler::RenderMap() const {
 	//const auto route_map_settings = reader_.GetRenderSettings();
 	const auto& busname_to_buses = db_.GetBusnameToBuses();
@@ -25,4 +29,12 @@ svg::Document RequestHandler::RenderMap() const {
 
 std::optional<const router::RouteData> RequestHandler::CalculateRoute(router::TransportRouter& tr,const std::string_view from, const std::string_view to) {
 	return tr.CalculateRoute(from, to);
+}
+
+void RequestHandler::Serialize(serializer::Serialization& ser) {
+	ser.Serialize();
+}
+
+void RequestHandler::Deserialize(serializer::Serialization& ser) {
+	ser.Deserialize();
 }

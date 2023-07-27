@@ -4,6 +4,7 @@
 #include "request_handler.h"
 #include "map_renderer.h"
 #include "transport_router.h"
+#include "serialization.h"
 #include <string>
 #include <sstream>
 
@@ -22,6 +23,10 @@ namespace json_reader {
         
         void LoadFromJson(std::istream& in);
 
+        void MakeBaseCommand(std::istream& in);
+
+        void ProcessRequestsCommand(std::istream& in, std::ostream& out);
+
         json::Array GetStatRequests();
 
         renderer::RouteMapSettings& GetRenderSettings();
@@ -34,6 +39,7 @@ namespace json_reader {
         json::Dict queries_;
         renderer::RouteMapSettings route_map_settings_;
         router::RouterSettings router_settings_;
+        serializer::SerializationSettings serialization_settings_;
         std::vector<json::Dict> stops_data_;
         std::vector<json::Dict> buses_data_;
         
@@ -42,6 +48,8 @@ namespace json_reader {
         void ProcessRenderSettings();
         //edit 13.06
         void ProcessRoutingSettings();
+
+        void ProcessSerializingSettings();
 
         void ParseStopsAndAdd();
         void ParseDistancesAndSet(StopToOtherStopsDistances& stop_to_other_stops);

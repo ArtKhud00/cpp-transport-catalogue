@@ -51,6 +51,7 @@ namespace catalogue {
 
 		const std::vector<const data::Stop*> GetStopsAsPtrs();
 		const std::vector<const data::Bus*> GetBusesAsPtrs();
+		const DistancesBetweenStops GetDistances();
 	private:
 		std::unordered_map<std::string_view, data::Stop*> stopname_to_stop_;
 		DistancesBetweenStops stops_distances_;

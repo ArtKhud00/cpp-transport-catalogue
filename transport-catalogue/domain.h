@@ -11,6 +11,7 @@ namespace data{
 	struct Stop {
 		std::string stopname_;
 		geo::Coordinates coordinates_;
+		int id;
 	};
 
 	struct Bus {

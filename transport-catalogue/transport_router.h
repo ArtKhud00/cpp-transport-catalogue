@@ -9,16 +9,16 @@
 namespace router {
 
 	struct RouterSettings {
-		int bus_wait_time = 0; // время ожидания автобуса в минутах
-		int bus_velocity = 0; // скорость автобуса в км/ч
+		int bus_wait_time = 0; // РІСЂРµРјСЏ РѕР¶РёРґР°РЅРёСЏ Р°РІС‚РѕР±СѓСЃР° РІ РјРёРЅСѓС‚Р°С…
+		int bus_velocity = 0; // СЃРєРѕСЂРѕСЃС‚СЊ Р°РІС‚РѕР±СѓСЃР° РІ РєРј/С‡
 	};
 
 	struct EdgeExtraInfo {
 		std::string edge_name;
 		double weight_info = 0.0;
-		// по полю span_count можем смотреть тип ребра
-		// если span_count=0, то тип "Wait"
-		// иначе - "Bus"
+		// РїРѕ РїРѕР»СЋ span_count РјРѕР¶РµРј СЃРјРѕС‚СЂРµС‚СЊ С‚РёРї СЂРµР±СЂР°
+		// РµСЃР»Рё span_count=0, С‚Рѕ С‚РёРї "Wait"
+		// РёРЅР°С‡Рµ - "Bus"
 		int span_count = 0;
 	};
 

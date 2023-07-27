@@ -2,6 +2,7 @@
 #include "transport_catalogue.h"
 #include "map_renderer.h"
 #include "transport_router.h"
+#include "serialization.h"
 #include "svg.h"
 
 #include <optional>
@@ -41,10 +42,16 @@
      void SetRenderSettings(const renderer::RouteMapSettings& map_settings);
 
      void SetRouterSettings(router::TransportRouter& tr,router::RouterSettings&);
+
+     void SetSerializationSettings(serializer::Serialization& ser, serializer::SerializationSettings&);
      
      svg::Document RenderMap() const;
 
      std::optional<const router::RouteData> CalculateRoute(router::TransportRouter& tr, const std::string_view, const std::string_view);
+
+     void Serialize(serializer::Serialization& ser);
+
+     void Deserialize(serializer::Serialization& ser);
 
  private:
      // RequestHandler использует агрегацию объектов "Транспортный Справочник" и "Визуализатор Карты"

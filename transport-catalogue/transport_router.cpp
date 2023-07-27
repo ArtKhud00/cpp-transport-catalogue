@@ -65,7 +65,7 @@ namespace router {
 		const std::vector<const data::Bus*> all_buses = tc_.GetBusesAsPtrs();
 		for (const auto& bus : all_buses) {
 			size_t stops_count =  bus->stops_.size();
-			// прямое направление
+			// РїСЂСЏРјРѕРµ РЅР°РїСЂР°РІР»РµРЅРёРµ
 			for (size_t ind_from = 0; ind_from < stops_count; ++ind_from) {
 				int span_count = 0;
 				for (size_t ind_to = ind_from + 1; ind_to < stops_count; ++ind_to) {
@@ -88,7 +88,7 @@ namespace router {
 					}
 				}
 			}
-			//обратное направление
+			//РѕР±СЂР°С‚РЅРѕРµ РЅР°РїСЂР°РІР»РµРЅРёРµ
 			if (!bus->is_circle) {
 				for (size_t ind_from = stops_count - 1; ind_from != -1; ind_from--) {
 					int span_count = 0;

@@ -1,6 +1,7 @@
 #include "transport_catalogue.h"
 #include <unordered_set>
 #include <stdexcept>
+#include <iostream>
 
 namespace catalogue {
 	void TransportCatalogue::AddStop(const data::Stop& stop) {
@@ -40,6 +41,7 @@ namespace catalogue {
 			res.unique_stops = unique_stops.size();
 			res.route_length = CalculateRouteLength(bus_name);
 			double route_geo_length = CalculateRouteLengthGeo(bus_name);
+			//std::cout << "GEO:" << route_geo_length << " LENGTH:" << res.route_length<<" ";
 			res.curvature = res.route_length / route_geo_length;
 		}
 		return res;
@@ -83,11 +85,14 @@ namespace catalogue {
 			auto& stops = bus->stops_;
 			for (size_t i = 0; i < stops.size() - 1; ++i) {
 				auto stop = stops[i];
+				//std::cout << "stop:" << stop->stopname_ << " " << stop->coordinates_.lat << " " << stop->coordinates_.lng << std::endl;
 				auto next_stop = stops[i + 1];
+				//std::cout << "next stop:" << next_stop->stopname_ << " " << next_stop->coordinates_.lat << " " << next_stop->coordinates_.lng << std::endl;
 				distance += is_circular ? geo::ComputeDistance(stop->coordinates_, next_stop->coordinates_)
 					: (geo::ComputeDistance(stop->coordinates_, next_stop->coordinates_)
 						+ geo::ComputeDistance(next_stop->coordinates_, stop->coordinates_));
 			}
+			//std::cout << std::endl << std::endl;
 			return distance;
 		}
 		return 0;
@@ -148,5 +153,8 @@ namespace catalogue {
 		}
 		return buses_pointers;
 	}
-
+	
+	const catalogue::DistancesBetweenStops TransportCatalogue::GetDistances() {
+		return stops_distances_;
+	}
 }
