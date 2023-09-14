@@ -299,3 +299,10 @@ cmake --build .
 ```
 ./transport_catalogue.exe process_requests <in1p.json >out1.json
 ```
+
+## Системные требования
+ - C++17
+ - GCC (MinGW-w64) 11.2.2
+## Используемые технологии
+ - CMake 3.22.0
+ - Protobuf-cpp 3.18.1
