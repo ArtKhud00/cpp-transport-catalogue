@@ -236,3 +236,66 @@
       "id": 4
 }
 ```
+
+## Сборка
+Для проекта используется система сборки CMake. Рекомендуется осуществлять сборку проекта в отдельной директории, чтобы не испортить директорию с исходным кодом, так в процессе сборки создаются вспомогательные файлы CMake, промежуточные файлы компиляции.
+Возможная структура каталога для сборки:
+```
+cpp-transport-catalogue/
+├── transport-catalogue/ # папка с исходным кодом
+│   ├── CMakeLists.txt
+│   ├── domain.cpp
+│   ├── domain.h
+│   ├── geo.cpp
+│   ├── geo.h
+│   ├── graph.h
+│   ├── graph.proto
+│   ├── input_reader.cpp
+│   ├── input_reader.h
+│   ├── json_builder.cpp
+│   ├── json_builder.h
+│   ├── json.cpp
+│   ├── json.h
+│   ├── json_reader.cpp
+│   ├── json_reader.h
+│   ├── main.cpp
+│   ├── map_renderer.cpp
+│   ├── map_renderer.h
+│   ├── map_renderer.proto
+│   ├── ranges.h
+│   ├── request_handler.cpp
+│   ├── request_handler.h
+│   ├── router.h
+│   ├── serialization.cpp
+│   ├── serialization.h
+│   ├── stat_reader.cpp
+│   ├── stat_reader.h
+│   ├── svg.cpp
+│   ├── svg.h
+│   ├── svg.proto
+│   ├── transport_catalogue.cpp
+│   ├── transport_catalogue.h
+│   ├── transport_catalogue.proto
+│   ├── transport_router.cpp
+│   ├── transport_router.h
+│   └── transport_router.proto
+└── transport-catalogue-build/ # папка для сборки
+    └── # тут будут файлы сборки
+```
+При сборке в консоли необходимо также указать путь к собранному пакету Protobuf. Для этого нужно в переменной `CMAKE_PREFIX_PATH` указать путь к пакету. Таким образом, команды для сборки будут выглядеть следующим образом:
+```
+cd transport-catalogue-build/
+cmake ../transport-catalogue -DCMAKE_PREFIX_PATH=/path/to/protobuf/package -G "MinGW Makefiles"
+cmake --build .
+```
+Флаг `-G "MinGW Makefiles"` используется под Windows, так как используется генератор `"MinGW Makefiles"`
+## Запуск
+Будет приведен пример запуска программы под Windows.
+ - make_base:
+```
+./transport_catalogue.exe make_base <in1m.json
+```
+ - process_requests:
+```
+./transport_catalogue.exe process_requests <in1p.json >out1.json
+```
